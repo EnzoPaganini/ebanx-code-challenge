@@ -18,7 +18,8 @@ use App\Http\Controllers\AccountController;
 Route::group([
     'middleware' => ['middleware' => 'api'],
 ], function () {
-    Route::get('/balance/{account_id}', [AccountController::class, 'getBalance']);
+    Route::get('/balance', [AccountController::class, 'getBalance']);
     Route::post('/account/create', [AccountController::class, 'createAccount']);
     Route::post('/event', [AccountController::class, 'createEvent']);
+    Route::post('/reset', [AccountController::class, 'reset']);
 });

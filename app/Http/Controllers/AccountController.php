@@ -11,12 +11,12 @@ class AccountController extends Controller
 {
     public function __construct() { }
 
-    public function getBalance(AccountService $account_service, $account_id) {
-        $response = $account_service->getBalance($account_id);
-        if(empty($response)){
+    public function getBalance(AccountService $account_service, Request $request) {
+        $response = $account_service->getBalance(json_decode($request->getContent(), true));
+        if($response == 0){
             return $this->errorResponse("Account not found", 404);
         }else{
-            return $this->successResponse($response["balance"]);
+            return $this->successResponse($response, 200);
         }
     }
 
@@ -30,7 +30,12 @@ class AccountController extends Controller
         if(!$response){
             return $this->errorResponse("Account not found", 404);
         }else{
-            return $this->successResponse($response);
+            return $this->successResponse($response, 201);
         }
+    }
+
+    public function reset(AccountService $account_service) {
+        $response = $account_service->reset();
+        return $this->successResponse($response, 200);
     }
 }

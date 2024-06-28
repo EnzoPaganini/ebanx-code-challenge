@@ -10,6 +10,7 @@ use App\Traits\ApiResponse;
 
 class AccountService extends Service {
 
+
     public function __construct() {
         //
     }
@@ -55,9 +56,9 @@ class AccountService extends Service {
     }
 
     /**
-     * Create account
+     * Create an event, that could be deposit, transfer or withdraw
      *
-     * @param mixed $account_id
+     * @param mixed $data
      * @return AccountCustomer
      */
     public function createEvent ($data) {
@@ -77,6 +78,7 @@ class AccountService extends Service {
                     $new_balance = $account["balance"] + $data["amount"];
                     return $this->updateAccount($data["destination"], ["balance" => $new_balance]);
                 }
+
             case("withdraw"):
                 # check if account exists
                 $account = Account::find($data["origin"]);
@@ -89,13 +91,49 @@ class AccountService extends Service {
                     return $this->updateAccount($data["origin"], ["balance" => $new_balance]);
                 }
             
+            case("transfer"):
+                # check if account exists
+                $origin_account = Account::find($data["origin"]);
+                $destination_account = Account::find($data["destination"]);
+                if(empty($origin_account)){
+                    # if account not found, return error
+                    return false;
+                }else{
+                    # if account found, update account with new balance
+                    # subtract amount from origin account
+                    $new_origin_balance = $origin_account["balance"] - $data["amount"];
+                    $this->updateAccount($origin_account["id"], ["balance" => $new_origin_balance]);
+                    # add amount into destination account
+                    $new_destination_balance = $destination_account["balance"] + $data["amount"];
+                    $this->updateAccount($destination_account["id"], ["balance" => $new_destination_balance]);
+                    $response = [
+                        "origin" => [
+                            "id" => $origin_account["id"],
+                            "balance" => $new_origin_balance
+                        ],
+                        "destination" => [
+                            "id" => $destination_account["id"],
+                            "balance" => $new_destination_balance
+                        ]
+                    ];
+                    return $response;
+                }
+
+
         }
-
-
-
-
         $account = Account::insert($account_data);
 
         return $account;
+    }
+
+    /**
+     * Reset database
+     *
+     * @return AccountCustomer
+     */
+    public function reset () {
+        $account = DB::table('accounts')->truncate();
+
+        return "Reset complete";
     }
 }
